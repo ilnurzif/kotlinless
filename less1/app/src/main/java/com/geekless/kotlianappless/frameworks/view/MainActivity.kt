@@ -1,18 +1,18 @@
 package com.geekless.kotlianappless.frameworks.view
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.GridLayoutManager
+import com.geekless.kotliana.MyViewModel
 import com.geekless.kotlianappless.R
+import kotlinx.android.synthetic.main.content_scrolling.*
 
-import com.geekless.kotlianappless.interface_adapters.viewmodel.MyViewModel
 
 class MainActivity : FragmentActivity() {
     lateinit var myViewModel: MyViewModel;
+    lateinit var adapter: NotesRVAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,12 +21,12 @@ class MainActivity : FragmentActivity() {
         val myViewModelFactory = MyViewModelFactory()
         myViewModel = ViewModelProviders.of(this, myViewModelFactory)[MyViewModel::class.java]
 
-        myViewModel.viewState().observe(this, Observer {
-           str->Toast.makeText(this,str,Toast.LENGTH_LONG).show();
-            findViewById<TextView>(R.id.myTW).text = str
+        rv_notes.layoutManager = GridLayoutManager(this, 2)
+        adapter = NotesRVAdapter()
+        rv_notes.adapter = adapter
+        myViewModel.viewState().observe(this, Observer { state ->
+            state?.let { adapter.notes = it.notes }
         })
-
-        findViewById<Button>(R.id.button).setOnClickListener { myViewModel.onClickButt() }
     }
 }
 

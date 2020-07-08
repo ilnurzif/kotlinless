@@ -1,19 +1,19 @@
-package com.geekless.kotlianappless.interface_adapters.viewmodel
+package com.geekless.kotliana
 
+import com.geekless.kotlianappless.interface_adapters.viewmodel.MyViewState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.geekless.kotlianappless.model.interactors.IModel
 
 class MyViewModel(model: IModel): ViewModel() {
-    private val viewStateData = MutableLiveData<String>()
+    private val viewStateData = MutableLiveData<MyViewState>()
 
     init {
-        model.getData().subscribe{str -> viewStateData.value = str}
+        model.getData().subscribe{list-> viewStateData.value=MyViewState(list)}
     }
 
-    fun viewState(): LiveData<String> =  viewStateData
-    fun onClickButt() {viewStateData.value = "butclickText"}
+    fun viewState(): LiveData<MyViewState> = viewStateData
 }
 
 

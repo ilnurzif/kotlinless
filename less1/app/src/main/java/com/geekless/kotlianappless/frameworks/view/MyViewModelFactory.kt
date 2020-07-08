@@ -2,7 +2,7 @@ package com.geekless.kotlianappless.frameworks.view
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.geekless.kotlianappless.interface_adapters.viewmodel.MyViewModel
+import com.geekless.kotliana.MyViewModel
 import com.geekless.kotlianappless.model.data.MyDataSource
 import com.geekless.kotlianappless.model.data.MyRepositoryImpl
 import com.geekless.kotlianappless.model.interactors.IModel
