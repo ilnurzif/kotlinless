@@ -1,4 +1,4 @@
-package com.geekless.kotlianappless.interface_adapters.viewmodel
+package com.geekless.kotlianappless.interface_adapters.viewmodel.main
 
 import com.geekless.kotlianappless.model.entities.Note
 
