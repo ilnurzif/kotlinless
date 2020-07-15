@@ -18,9 +18,12 @@ import com.geekless.kotlianappless.interface_adapters.viewmodel.note.NoteViewSta
 
 class NoteActivity : AppCompatActivity() {
     companion object {
-      fun start(context: Context) {
-          val intent = Intent(context, NoteActivity::class.java)
-          context.startActivity(intent)}
+        const val EXTRA_NOTE = "extra.NOTE"
+
+        fun start(context: Context, noteId: String? = null) = Intent(context, NoteActivity::class.java).run {
+            putExtra(EXTRA_NOTE, noteId)
+            context.startActivity(this)
+        }
     }
 
      lateinit var noteViewModel: NoteViewModel
@@ -34,6 +37,8 @@ class NoteActivity : AppCompatActivity() {
         noteViewModel = ViewModelProviders.of(this, noteViewModelFactory)[NoteViewModel::class.java]
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         noteViewModel.viewNote().observe(this, Observer {setData(it)})
+        val noteId = intent.getStringExtra(EXTRA_NOTE)
+        noteViewModel.loadNote(noteId)
         initView()
     }
 

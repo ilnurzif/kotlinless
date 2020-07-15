@@ -2,10 +2,11 @@ package com.geekless.kotlianappless.model.data
 
 import com.geekless.kotlianappless.model.entities.Note
 import io.reactivex.subjects.BehaviorSubject
+import ru.geekbrains.gb_kotlin.data.model.NoteResult
 import java.util.*
 
-object BaseDataSource:IDataSource {
-    private lateinit var currentNote:Note
+object BaseDataSource/*:IDataSource*/ {
+   /* private lateinit var currentNote:Note
     private val notes: MutableList<Note> = mutableListOf(
             Note(id = UUID.randomUUID().toString(),
                     title = "Моя первая заметка",
@@ -40,7 +41,7 @@ object BaseDataSource:IDataSource {
     var noteListBehaviorSubject = BehaviorSubject.create<List<Note>>()
     var currentNoteBehaviorSubject = BehaviorSubject.create<Note>()
 
-    override fun getData(): BehaviorSubject<List<Note>> {
+    override fun getData(): BehaviorSubject<List<NoteResult>> {
         noteListBehaviorSubject.onNext(notes)
         return noteListBehaviorSubject
     }
@@ -68,5 +69,5 @@ object BaseDataSource:IDataSource {
         }
         notes.add(note)
         noteListBehaviorSubject.onNext(notes)
-    }
+    }*/
 }

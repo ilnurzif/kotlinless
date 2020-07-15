@@ -6,13 +6,19 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.geekless.kotlianappless.model.entities.Note
 import com.geekless.kotlianappless.model.interactors.main.IMainModel
-import kotlinx.android.synthetic.main.activity_note.*
+import ru.geekbrains.gb_kotlin.data.model.NoteResult
 import java.util.*
 
 class MainViewModel(val model: IMainModel): ViewModel() {
     private val viewStateData = MutableLiveData<MyViewState>()
 
-    init {model.getData().subscribe{ list-> viewStateData.value= MyViewState(list) }}
+    init {model.getData().subscribe{
+       result: NoteResult ->
+        when(result){
+            is NoteResult.Success<*> -> {viewStateData.value=MyViewState(result.data as? List<Note>)}
+            is NoteResult.Error -> viewStateData.value = MyViewState(error = result.error)
+        }
+    }}
 
     fun viewState(): LiveData<MyViewState> = viewStateData
 
