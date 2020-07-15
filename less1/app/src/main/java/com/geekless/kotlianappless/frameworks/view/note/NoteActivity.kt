@@ -15,7 +15,6 @@ import androidx.lifecycle.Observer
 import com.geekless.kotlia.NoteViewModel
 import com.geekless.kotlianappless.interface_adapters.viewmodel.note.NoteViewState
 
-
 class NoteActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_NOTE = "extra.NOTE"
@@ -26,7 +25,7 @@ class NoteActivity : AppCompatActivity() {
         }
     }
 
-     lateinit var noteViewModel: NoteViewModel
+    lateinit var noteViewModel: NoteViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,14 +35,14 @@ class NoteActivity : AppCompatActivity() {
         val noteViewModelFactory = NoteViewModelFactory(this)
         noteViewModel = ViewModelProviders.of(this, noteViewModelFactory)[NoteViewModel::class.java]
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        noteViewModel.viewNote().observe(this, Observer {setData(it)})
+        noteViewModel.viewNote().observe(this, Observer { setData(it) })
         val noteId = intent.getStringExtra(EXTRA_NOTE)
         noteViewModel.loadNote(noteId)
         initView()
     }
 
     val textChangeListener = object : TextWatcher {
-        override fun afterTextChanged(p0: Editable?)= saveNote()
+        override fun afterTextChanged(p0: Editable?) = saveNote()
         override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
     }
@@ -54,14 +53,14 @@ class NoteActivity : AppCompatActivity() {
         noteViewModel.save(title, text);
     }
 
-   fun setData(viewState:NoteViewState) {
+    fun setData(viewState: NoteViewState) {
         viewState?.let {
-           supportActionBar?.title =it.toolbarTitle
-           et_title.setText(it.title)
-           et_body.setText(it.text)
-           toolbar.setBackgroundColor(it.toolbarColor)
+            supportActionBar?.title = it.toolbarTitle
+            et_title.setText(it.title)
+            et_body.setText(it.text)
+            toolbar.setBackgroundColor(it.toolbarColor)
         }
-  }
+    }
 
     fun initView() {
         et_title.addTextChangedListener(textChangeListener)

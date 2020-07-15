@@ -19,4 +19,13 @@ class Utility(val context: Context):IUtility {
             }
         return ResourcesCompat.getColor(context.resources, color, null)
     }
+
+    override fun getColor(): Note.Color {
+        val colorArr=Note.Color.values()
+        val size= Note.noteCount
+        val newColor=colorArr[size % colorArr.size]
+        return newColor
+    }
+
+    override fun getStringResource(res: String)=context.getResources().getString(context.getResources().getIdentifier(res, "string", context.getPackageName()))
 }

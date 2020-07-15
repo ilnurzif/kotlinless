@@ -9,6 +9,5 @@ interface IDataSource {
     fun getData(): BehaviorSubject<NoteResult>
     fun getCurrentNodeBehaviorSubject(): BehaviorSubject<NoteResult>
     fun saveNote(note: Note)
-    fun setDefaultNote(note: Note)
     fun loadNote(noteId: String)
 }

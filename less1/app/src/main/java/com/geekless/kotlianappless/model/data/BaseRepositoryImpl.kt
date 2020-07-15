@@ -14,11 +14,7 @@ class BaseRepositoryImpl(val dataSource: IDataSource) : IMyRepository {
         dataSource.saveNote(note)
     }
 
-    override fun setDefaultNote(note: Note) {
-        dataSource.setDefaultNote(note)
-    }
-
-    override fun getDefaultNoteBehaviorSubject(): BehaviorSubject<NoteResult> {
+     override fun getDefaultNoteBehaviorSubject(): BehaviorSubject<NoteResult> {
         return dataSource.getCurrentNodeBehaviorSubject()
     }
 

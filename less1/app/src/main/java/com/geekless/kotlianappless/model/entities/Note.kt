@@ -9,7 +9,9 @@ data class Note(val id: String = "",
                     val text: String = "",
                     val color: Color = Color.WHITE,
                     val lastChanged: Date = Date()) :Parcelable {
-    //fun Note() {}
+
+    companion object {var noteCount=0}
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.geekless.kotliana.MainViewModel
 import com.geekless.kotlianappless.R
 import com.geekless.kotlianappless.frameworks.view.note.NoteActivity
-import com.geekless.kotlianappless.model.entities.Note
 import com.geekless.kotlianappless.model.interactors.utility.Utility
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_scrolling.*
@@ -26,25 +25,17 @@ class MainActivity : FragmentActivity() {
         mainViewModel = ViewModelProviders.of(this, myViewModelFactory)[MainViewModel::class.java]
 
         rv_notes.layoutManager = GridLayoutManager(this, 2)
-        adapter = NotesRVAdapter ({
-           // mainViewModel.setDefaultNote(it)
-         NoteActivity.start(this, it.id)
-        }, Utility(this))
+        adapter = NotesRVAdapter({ NoteActivity.start(this, it.id)}, Utility(this))
         rv_notes.adapter = adapter
-        mainViewModel.viewState().observe(this, Observer { state ->
-         state.error?.let {
-           renderError(it)
-           } ?: state?.notes?.let {
-             adapter.notes = it}
-        })
+        mainViewModel.viewState().observe(this, Observer { state ->state.error?.let {renderError(it)} ?: state?.notes?.let {adapter.notes = it}})
 
         addNoteFab.setOnClickListener {
-         // mainViewModel.createNote()
-          NoteActivity.start(this) }
+            NoteActivity.start(this)
+        }
     }
 
     private fun renderError(err: Throwable) {
-      Toast.makeText(this, err.message, Toast.LENGTH_LONG).show()
+        Toast.makeText(this, err.message, Toast.LENGTH_LONG).show()
     }
 }
 
