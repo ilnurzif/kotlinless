@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "906650065047",
+    "firebase_url": "https://noteapp-c3047.firebaseio.com",
+    "project_id": "noteapp-c3047",
+    "storage_bucket": "noteapp-c3047.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:906650065047:android:907ad53283712d9a6e71d2",
+        "android_client_info": {
+          "package_name": "com.geekless.kotlianappless"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "906650065047-vdt96t59tgkr829a0lfe2edaqe16ttno.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByGJRNq-TTMRGZEnYtD9nN3E4C_dlGuDI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "906650065047-vdt96t59tgkr829a0lfe2edaqe16ttno.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
