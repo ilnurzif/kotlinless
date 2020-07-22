@@ -1,6 +1,7 @@
 package com.geekless.kotlianappless.model.data
 
 import com.geekless.kotlianappless.model.entities.Note
+import com.geekless.kotlianappless.model.entities.User
 import com.geekless.kotlianappless.model.repositories.IMyRepository
 import io.reactivex.subjects.BehaviorSubject
 import ru.geekbrains.gb_kotlin.data.model.NoteResult
@@ -20,5 +21,9 @@ class BaseRepositoryImpl(val dataSource: IDataSource) : IMyRepository {
 
     override fun loadNote(noteId: String) {
         dataSource.loadNote(noteId)
+    }
+
+    override fun getDefaultUser(): BehaviorSubject<User> {
+        return dataSource.getDefaultUser()
     }
 }

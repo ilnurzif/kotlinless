@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
 import com.geekless.kotlianappless.R
@@ -14,6 +15,7 @@ import kotlinx.android.synthetic.main.activity_note.toolbar
 import androidx.lifecycle.Observer
 import com.geekless.kotlia.NoteViewModel
 import com.geekless.kotlianappless.interface_adapters.viewmodel.note.NoteViewState
+import com.google.firebase.auth.FirebaseAuth
 
 class NoteActivity : AppCompatActivity() {
     companion object {
@@ -65,6 +67,9 @@ class NoteActivity : AppCompatActivity() {
     fun initView() {
         et_title.addTextChangedListener(textChangeListener)
         et_body.addTextChangedListener(textChangeListener)
+        val user =FirebaseAuth.getInstance().currentUser
+        val str=user?.displayName
+        Toast.makeText(this, str, Toast.LENGTH_LONG).show();
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {

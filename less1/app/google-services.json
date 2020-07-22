@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "906650065047-c2ktm638jbdjl0vkb1a2tk8ghqbv1sr4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.geekless.kotlianappless",
+            "certificate_hash": "d9ed7150bda200c3383dde9ac9c2dd0fbb639f4e"
+          }
+        },
+        {
           "client_id": "906650065047-vdt96t59tgkr829a0lfe2edaqe16ttno.apps.googleusercontent.com",
           "client_type": 3
         }
