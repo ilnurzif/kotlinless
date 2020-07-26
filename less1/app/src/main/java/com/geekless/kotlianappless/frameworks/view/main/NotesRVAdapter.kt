@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.geekless.kotlianappless.R
+import com.geekless.kotlianappless.frameworks.common.getColorInt
 import com.geekless.kotlianappless.model.entities.Note
 import com.geekless.kotlianappless.model.interactors.utility.IUtility
 import kotlinx.android.synthetic.main.item_note.view.*
@@ -32,13 +33,11 @@ class NotesRVAdapter(val onItemClick: ((Note) -> Unit)? = null, val utility: IUt
         fun bind(note: Note) = with(itemView) {
             tv_title.text = note.title
             tv_text.text = note.text
-            setBackgroundColor(utility.NoteColorToRes(note.color))
+            setBackgroundColor(note.color.getColorInt(context)/*   utility.NoteColorToRes(note.color)*/)
             context
             setOnClickListener {
                 onItemClick?.invoke(note)
             }
         }
-
     }
-
 }

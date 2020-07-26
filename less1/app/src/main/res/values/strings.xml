@@ -6,4 +6,11 @@
     <string name="logout_ok">Да</string>
     <string name="logout_cancel">Нет</string>
     <string name="logout_menu_title">Выход</string>
+    <string name="note_change_color">Цвет</string>
+    <string name="note_delete">Удалить</string>
+    <string name="note_delete_message">Вы уверены?</string>
+    <string name="note_delete_cancel">Нет</string>
+    <string name="note_delete_ok">Да</string>
+    <string name="note_del_title">Заметка удалена</string>
+    <string name="save_ok_title">Заметка успешно сохранена</string>
 </resources>
