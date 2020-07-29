@@ -26,7 +26,7 @@ class MainViewModel(val model: IMainModel) : ViewModel() {
         }
     }
 
-    fun viewState(): LiveData<MyViewState> = viewStateData
+      fun viewState(): LiveData<MyViewState> = viewStateData
 }
 
 

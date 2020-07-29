@@ -38,18 +38,22 @@ class FireBaseDataSource(val store: FirebaseFirestore, val auth: FirebaseAuth) :
 
     private fun getUserNotesCollection() = currentUser?.let {
         store.collection(USERS_COLLECTION).document(it.uid).collection(NOTES_COLLECTION)
-    }
+    } ?: throw NoAuthException()
 
     override fun getData(): BehaviorSubject<NoteResult> {
-        getUserNotesCollection()?.addSnapshotListener { snapshot, e ->
-            var noteResult: NoteResult? = null;
-            e?.let {
-                noteResult = NoteResult.Error(e)
-            } ?: snapshot?.let {
-                val notes = snapshot.documents.map { doc -> doc.toObject(Note::class.java) }
-                noteResult = NoteResult.Success(notes)
+        try {
+            getUserNotesCollection()?.addSnapshotListener { snapshot, e ->
+                var noteResult: NoteResult? = null;
+                e?.let {
+                    noteResult = NoteResult.Error(e)
+                } ?: snapshot?.let {
+                    val notes = snapshot.documents.map { doc -> doc.toObject(Note::class.java) }
+                    noteResult = NoteResult.Success(notes)
+                }
+                noteResult?.let { noteResultListBehaviorSubject.onNext(it) }
             }
-            noteResult?.let { noteResultListBehaviorSubject.onNext(it) }
+        } catch (e: Throwable) {
+            noteResultListBehaviorSubject.onNext(NoteResult.Error(e))
         }
         return noteResultListBehaviorSubject
     }

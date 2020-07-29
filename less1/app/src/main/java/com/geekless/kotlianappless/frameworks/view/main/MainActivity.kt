@@ -46,7 +46,6 @@ class MainActivity : AppCompatActivity() {
         addNoteFab.setOnClickListener {
             NoteActivity.start(this)
         }
-
     }
 
     private fun renderError(err: Throwable) {
