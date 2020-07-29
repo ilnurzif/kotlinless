@@ -12,15 +12,13 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subscribers.TestSubscriber
 import junit.framework.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import ru.geekbrains.gb_kotlin.data.model.NoteResult
-import javax.sql.DataSource
+import java.lang.AssertionError
 
 class MainViewModelTest {
     @get:Rule
@@ -66,16 +64,16 @@ class MainViewModelTest {
 
 /*    @Test
     fun `should return error`() {
-         var result: Throwable? = null
+        var result: Throwable? = null
         val noteResult = NoteResult.Error(Throwable())
         noteResultListBehaviorSubject.onNext(noteResult)
         every { dataSource.getData() } returns noteResultListBehaviorSubject
       //  var result: MyViewState? = null
-        val testData = Throwable()
+        val testData = MyViewState(error = Throwable()).error
         mainViewModel.viewState().observeForever {
-            result = it.error  //MyViewState(error = testData)//it?.error
+             result = it.error  //MyViewState(error = testData)//it?.error
         }
-        viewStateData.value = MyViewState(error = testData)
+       viewStateData.value = MyViewState(error = testData)
         Assert.assertEquals(testData, result)
     }*/
 
