@@ -3,13 +3,18 @@ package com.geekless.kotlianappless.frameworks.firebase
 import com.geekless.kotlianappless.interface_adapters.viewmodel.splash.SplashViewState
 import com.geekless.kotlianappless.model.data.IDataSource
 import com.geekless.kotlianappless.model.entities.Note
+import com.geekless.kotlianappless.model.entities.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import io.reactivex.Completable
-import io.reactivex.Single
+import com.google.firebase.firestore.ListenerRegistration
 import io.reactivex.subjects.BehaviorSubject
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 import ru.geekbrains.gb_kotlin.data.error.NoAuthException
 import ru.geekbrains.gb_kotlin.data.model.NoteResult
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 class FireBaseDataSource(val store: FirebaseFirestore, val auth: FirebaseAuth) : IDataSource {
     private val NOTES_COLLECTION = "notes"
@@ -21,81 +26,71 @@ class FireBaseDataSource(val store: FirebaseFirestore, val auth: FirebaseAuth) :
     private val currentUser
         get() = auth.currentUser
 
-    val unsubscribe =
-            try {
-                auth.addAuthStateListener { fb ->
-                    fb.currentUser?.let {
-                        currentUserBehaviorSubject?.onNext(SplashViewState(authenticated = true))
-                    }
-                            ?: let {
-                                currentUserBehaviorSubject?.onNext(SplashViewState(error = NoAuthException()))
-                            }
-                }
-            } catch (t: Throwable) {
-                currentUserBehaviorSubject?.let { it.onError(t) }
-            }
-
 
     private fun getUserNotesCollection() = currentUser?.let {
         store.collection(USERS_COLLECTION).document(it.uid).collection(NOTES_COLLECTION)
     } ?: throw NoAuthException()
 
-    override fun getData(): BehaviorSubject<NoteResult> {
+    override fun getData(): ReceiveChannel<NoteResult> = Channel<NoteResult>(Channel.CONFLATED).apply {
+        var registration: ListenerRegistration? = null
+
         try {
-            getUserNotesCollection()?.addSnapshotListener { snapshot, e ->
-                var noteResult: NoteResult? = null;
-                e?.let {
-                    noteResult = NoteResult.Error(e)
+            registration = getUserNotesCollection().addSnapshotListener { snapshot, e ->
+                val value = e?.let {
+                    NoteResult.Error(it)
                 } ?: snapshot?.let {
                     val notes = snapshot.documents.map { doc -> doc.toObject(Note::class.java) }
-                    noteResult = NoteResult.Success(notes)
+                    NoteResult.Success(notes)
                 }
-                noteResult?.let { noteResultListBehaviorSubject.onNext(it) }
+                value?.let { offer(it) }
             }
+
         } catch (e: Throwable) {
-            noteResultListBehaviorSubject.onNext(NoteResult.Error(e))
+            offer(NoteResult.Error(e))
         }
-        return noteResultListBehaviorSubject
+
+        invokeOnClose { registration?.remove() }
     }
 
-    override fun saveNote(note: Note): Completable {
-        return Completable.create { emitter ->
-            getUserNotesCollection()?.let {
-                it.document(note.id).set(note)
-                        .addOnSuccessListener { snapshot ->
-                            emitter.onComplete()
-                        }.addOnFailureListener {
-                            emitter.onError(it)
-                        }
-            }
-        }
-    }
-
-    override fun loadNote(noteId: String): Single<NoteResult> {
-        return Single.create { emitter ->
-            getUserNotesCollection()?.let {
-                it.document(noteId).get()
-                        .addOnSuccessListener { snapshot ->
-                            emitter.onSuccess(NoteResult.Success(snapshot.toObject(Note::class.java)))
-                        }.addOnFailureListener {
-                            emitter.onSuccess(NoteResult.Error(it))
-                        }
-            }
-        }
-    }
-
-    override fun getDefaultUser(): BehaviorSubject<SplashViewState> {
-        return currentUserBehaviorSubject
-    }
-
-    override fun deleteNote(note: Note): Completable {
-        return Completable.create { emitter ->
-            getUserNotesCollection()?.document(note.id)?.delete()
-                    ?.addOnSuccessListener { snapshot ->
-                        emitter.onComplete()
-                    }?.addOnFailureListener {
-                        emitter.onError(it)
+    override suspend fun saveNote(note: Note): Note = suspendCoroutine { continuation ->
+        try {
+            getUserNotesCollection().document(note.id).set(note)
+                    .addOnSuccessListener {
+                        continuation.resume(note)
+                    }.addOnFailureListener {
+                        continuation.resumeWithException(it)
                     }
+        } catch (e: Throwable) {
+            continuation.resumeWithException(e)
+        }
+    }
+
+    override suspend fun loadNote(noteId: String): Note = suspendCoroutine { continuation ->
+        try {
+            getUserNotesCollection().document(noteId).get()
+                    .addOnSuccessListener { snapshot ->
+                        continuation.resume(snapshot.toObject(Note::class.java)!!)
+                    }.addOnFailureListener {
+                    }
+        } catch (e: Throwable) {
+            continuation.resumeWithException(e)
+        }
+    }
+
+    override suspend fun getDefaultUser(): User? = suspendCoroutine { continuation ->
+        continuation.resume(currentUser?.let { User(it.displayName ?: "", it.email ?: "") })
+    }
+
+    override suspend fun deleteNote(note: Note): Unit = suspendCoroutine { continuation ->
+        try {
+            getUserNotesCollection().document(note.id).delete()
+                    .addOnSuccessListener { snapshot ->
+                        continuation.resume(Unit)
+                    }.addOnFailureListener {
+                        continuation.resumeWithException(it)
+                    }
+        } catch (e: Throwable) {
+            continuation.resumeWithException(e)
         }
     }
 }

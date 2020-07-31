@@ -22,7 +22,7 @@ import ru.geekbrains.gb_kotlin.data.error.NoAuthException
 import ru.geekbrains.gb_kotlin.data.model.NoteResult
 
 class FireBaseDataSourceTest {
-  //  @get:Rule
+/*  //  @get:Rule
    // val taskExecutorRule = InstantTaskExecutorRule()
 
     private val mockDb = mockk<FirebaseFirestore>()
@@ -144,5 +144,5 @@ class FireBaseDataSourceTest {
         dataSource.deleteNote(testNotes[0]).subscribe({result=true},{})
         slot.captured.onSuccess(mockSnaphot)
         assertEquals(result,true)
-    }
+    }*/
 }

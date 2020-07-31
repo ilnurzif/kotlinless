@@ -2,20 +2,18 @@ package com.geekless.kotlianappless.model.interactors.note
 
 import com.geekless.kotlianappless.model.entities.Note
 import com.geekless.kotlianappless.model.repositories.IMyRepository
-import io.reactivex.Completable
-import io.reactivex.Single
-import ru.geekbrains.gb_kotlin.data.model.NoteResult
 
 class NodeModelImpl(val repository: IMyRepository): INoteModel {
-    override fun saveNote(note: Note): Completable {
+    override suspend fun loadNote(id: String): Note {
+        return repository.loadNote(id)
+    }
+
+    override suspend fun deleteNote(note: Note) {
+        return repository.deleteNote(note)
+    }
+
+    override suspend fun saveNote(note: Note): Note {
         return repository.saveNote(note)
     }
 
-    override fun loadNote(noteId: String): Single<NoteResult> {
-        return repository.loadNote(noteId)
-    }
-
-    override fun deleteNote(note: Note): Completable {
-       return repository.deleteNote(note)
-    }
 }

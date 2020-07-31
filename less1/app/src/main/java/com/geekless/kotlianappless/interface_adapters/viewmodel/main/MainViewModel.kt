@@ -1,16 +1,22 @@
 package com.geekless.kotliana
 
-import androidx.annotation.VisibleForTesting
-import com.geekless.kotlianappless.interface_adapters.viewmodel.main.MyViewState
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModel
 import com.geekless.kotlianappless.model.entities.Note
 import com.geekless.kotlianappless.model.interactors.main.IMainModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import ru.geekbrains.gb_kotlin.data.model.NoteResult
+import kotlinx.coroutines.channels.consumeEach
+import kotlin.coroutines.CoroutineContext
 
-class MainViewModel(val model: IMainModel) : ViewModel() {
-    private val viewStateData = MutableLiveData<MyViewState>()
+class MainViewModel(val model: IMainModel ) : ViewModel(), CoroutineScope {
+    override val coroutineContext: CoroutineContext by lazy {
+        Dispatchers.Default + Job()
+    }
+
+/*    private val viewStateData = MutableLiveData<MyViewState>()
 
     init {
         model.getData().subscribe { result: NoteResult ->
@@ -25,8 +31,29 @@ class MainViewModel(val model: IMainModel) : ViewModel() {
                 is NoteResult.Error -> viewStateData.value = MyViewState(error = result.error)
             }
         }
+    }*/
+
+
+    private val notesChannel = model.getData()
+
+    init {
+        launch {
+            notesChannel.consumeEach {
+                when(it){
+                    is NoteResult.Success<*> -> setData(it.data as? List<Note>)
+                    is NoteResult.Error -> setError(it.error)
+                }
+            }
+        }
     }
-      fun viewState(): LiveData<MyViewState> = viewStateData
+
+    protected fun setData(data: S){
+        launch {
+            notesChannel.send(data)
+        }
+    }
+
+    //  fun viewState(): LiveData<MyViewState> = viewStateData
 }
 
 

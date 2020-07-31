@@ -18,9 +18,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import ru.geekbrains.gb_kotlin.data.model.NoteResult
-import java.lang.AssertionError
 
 class MainViewModelTest {
+/*
     @get:Rule
     val taskExecutorRule = InstantTaskExecutorRule()
 
@@ -61,5 +61,6 @@ class MainViewModelTest {
         viewStateData.value = MyViewState(notes = testData)
         Assert.assertEquals(testData, result)
     }
+*/
 
 }

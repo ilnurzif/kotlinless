@@ -1,8 +1,8 @@
 package com.geekless.kotlianappless.model.interactors.main
 
-import io.reactivex.subjects.BehaviorSubject
+import kotlinx.coroutines.channels.ReceiveChannel
 import ru.geekbrains.gb_kotlin.data.model.NoteResult
 
 interface IMainModel {
-    fun getData(): BehaviorSubject<NoteResult>
+    fun getData(): ReceiveChannel<NoteResult>
 }
