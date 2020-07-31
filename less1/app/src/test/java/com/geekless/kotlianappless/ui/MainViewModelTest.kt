@@ -62,19 +62,4 @@ class MainViewModelTest {
         Assert.assertEquals(testData, result)
     }
 
-/*    @Test
-    fun `should return error`() {
-        var result: Throwable? = null
-        val noteResult = NoteResult.Error(Throwable())
-        noteResultListBehaviorSubject.onNext(noteResult)
-        every { dataSource.getData() } returns noteResultListBehaviorSubject
-      //  var result: MyViewState? = null
-        val testData = MyViewState(error = Throwable()).error
-        mainViewModel.viewState().observeForever {
-             result = it.error  //MyViewState(error = testData)//it?.error
-        }
-       viewStateData.value = MyViewState(error = testData)
-        Assert.assertEquals(testData, result)
-    }*/
-
 }

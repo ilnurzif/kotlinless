@@ -14,6 +14,7 @@ import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subscribers.TestSubscriber
 import junit.framework.Assert
+import junit.framework.TestCase.assertEquals
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Test
@@ -110,117 +111,38 @@ class FireBaseDataSourceTest {
     }
 
     @Test
-    fun `saveNote return bool`() {
-        val mockDocumentReference: DocumentReference = mockk()
-        val slot = slot<OnSuccessListener<in Void>>()
-
-        every { mockResultCollection.document(testNotes[0].id) } returns mockDocumentReference
-        every { mockDocumentReference.set(testNotes[0]).addOnSuccessListener(capture(slot))} returns mockk()
-
-          val testsubscriber=TestSubscriber<Boolean>()
-     //   dataSource.saveNote(testNotes[0]).subscribe{testsubscriber.onComplete()}
-/*        dataSource.saveNote(testNotes[0]).subscribe(object : CompletableObserver {
-              override fun onComplete() {
-                testsubscriber.onNext(true)
-                testsubscriber.onComplete()
-            }
-
-            override fun onSubscribe(d: Disposable) {
-
-            }
-
-            override fun onError(e: Throwable) {
-               testsubscriber.onNext(false)
-               testsubscriber.onComplete()
-            }
-        })*/
-
-        dataSource.saveNote(testNotes[0])
-                .doOnComplete({})
-                .test ()
-                .assertResult()
-
-        slot.captured.onSuccess(null)
-
- /*       dataSource.saveNote(testNotes[0]).subscribe(
-          {
-              testsubscriber.onNext(true)
-              testsubscriber.onComplete()
-          },
-        { error ->
-            testsubscriber.onNext(false)
-            testsubscriber.onComplete()
-        });*/
-
-
-       testsubscriber.awaitTerminalEvent()
-        testsubscriber.assertComplete()
-
-    }
-
-     @Test
     fun `LoadNote return Note`() {
-     //   val mockDocumentReference: DocumentReference = mockk()
-     //   val slot = slot<OnSuccessListener<in DocumentSnapshot>>()
         var result: Note? = null
-
-     //   every { mockResultCollection.document(testNotes[0].id) } returns mockDocumentReference
-     //   every {mockDocumentReference.get().addOnSuccessListener(capture(slot))} returns spyk()
-        every {dataSource.loadNote(testNotes[0].id)} returns Single.just(NoteResult.Success(testNotes[0]))
-
-        val testsubscriber=TestSubscriber<NoteResult>()
-       //  dataSource.loadNote(testNotes[0].id).subscribe({testsubscriber},{})
-         dataSource.loadNote(testNotes[0].id).subscribeWith(object : DisposableSingleObserver<NoteResult?>() {
-            override fun onSuccess(noteResult: NoteResult) {
-                testsubscriber.onNext(noteResult)
-                testsubscriber.onComplete()
-            }
-
-            override fun onError(e: Throwable) {
-             //   testsubscriber.onNext()
-                testsubscriber.onComplete()
-            }
-        })
-
-
-      /*   dataSource.loadNote(testNotes[0].id)
-                 .test ()
-                 .assertComplete ()
-                .assertNoErrors ()*/
-
-                // .assertResult(NoteResult.Success(testNotes[0]))
-
-      //   slot.captured.onSuccess(null)
-
-      //   testsubscriber.awaitTerminalEvent()
-         testsubscriber.assertComplete()
-
-     //   testsubscriber.dispose()
-
-     //   assertEquals(testNotes[0], result)
-    }
-
+        val mockSnaphot=mockk<DocumentSnapshot>()
+        val slot = slot<OnSuccessListener<in DocumentSnapshot>>()
+        every {mockSnaphot.toObject(Note::class.java)} returns testNotes[0]
+        every { mockResultCollection.document(testNotes[0].id).get().addOnSuccessListener(capture(slot)).addOnFailureListener(any()) } returns mockk()
+        dataSource.loadNote(testNotes[0].id).subscribe{noteResult->
+            result=(noteResult as? NoteResult.Success<Note>)?.data
+        }
+        slot.captured.onSuccess(mockSnaphot)
+        assertEquals(result,testNotes[0])
+        }
 
     @Test
-    fun `saveNote returns note`(){
-        var result: Boolean? = null
-        val mockDocumentReference = mockk<DocumentReference>()
+    fun `SavedNote return Completable`() {
+        var result: Boolean? = false
+        val mockSnaphot=mockk<Void>()
         val slot = slot<OnSuccessListener<in Void>>()
+        every { mockResultCollection.document(testNotes[0].id).set(testNotes[0]).addOnSuccessListener(capture(slot)).addOnFailureListener(any()) } returns mockk()
+        dataSource.saveNote(testNotes[0]).subscribe({result=true},{})
+        slot.captured.onSuccess(mockSnaphot)
+        assertEquals(result,true)
+    }
 
-
-        every { mockResultCollection.document(testNotes[0].id) } returns mockDocumentReference
-        every { mockDocumentReference.set(testNotes[0]).addOnSuccessListener(capture(slot)) } returns mockk()
-
-    //    every { mockUsersCollection.addSnapshotListener(capture(slot)) } returns MockK()
-      //  slot.captured.onEvent(mockSnapshot, null)
-        val testsubscriber=TestSubscriber<Boolean>()
-        dataSource.saveNote(testNotes[0]).subscribe({testsubscriber.onComplete()},{})
-   /*             {result = true},
-                {result = false}
-          )*/
-        slot.captured.onSuccess(null)
-        testsubscriber.assertComplete()
-        //assertEquals(testNotes[0], result)
-      //  assertEquals(result, true)
+    @Test
+    fun `deleteNote return Completable`() {
+        var result: Boolean? = false
+        val mockSnaphot=mockk<Void>()
+        val slot = slot<OnSuccessListener<in Void>>()
+        every { mockResultCollection.document(testNotes[0].id).delete().addOnSuccessListener(capture(slot)).addOnFailureListener(any()) } returns mockk()
+        dataSource.deleteNote(testNotes[0]).subscribe({result=true},{})
+        slot.captured.onSuccess(mockSnaphot)
+        assertEquals(result,true)
     }
 }
