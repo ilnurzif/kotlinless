@@ -1,41 +1,53 @@
 package com.geekless.kotlia
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+
 import androidx.lifecycle.ViewModel
-import com.geekless.kotlianappless.frameworks.common.formatDate
 import com.geekless.kotlianappless.frameworks.common.getNewColor
 import com.geekless.kotlianappless.interface_adapters.viewmodel.note.NoteViewState
 import com.geekless.kotlianappless.model.entities.Note
 import com.geekless.kotlianappless.model.interactors.note.INoteModel
-import ru.geekbrains.gb_kotlin.data.model.NoteResult
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 
-class NoteViewModel(val noteModel: INoteModel) : ViewModel() {
+class NoteViewModel(val noteModel: INoteModel) : ViewModel(), CoroutineScope {
     private val DATE_TIME_FORMAT = "dd.MM.yy HH:mm"
-    private val noteViewState = MutableLiveData<NoteViewState>()
     private var changedNote: Note? = null
 
-    fun loadNote(noteId: String?) {
-        noteViewState.value = NoteViewState()
-        if (noteId != null) {
-            noteModel.loadNote(noteId).subscribe { noteResult ->
-                noteResult.let {
-                    when (noteResult) {
-                        is NoteResult.Success<*> -> {
-                            var n = noteResult.data as? Note
-                            val newNoteViewSate = NoteViewState(note = n)
-                            newNoteViewSate.toolbarTitle = n?.lastChanged?.formatDate(DATE_TIME_FORMAT)
-                                    ?: ""
-                            n?.let { changedNote = n }
-                            noteViewState.value = newNoteViewSate
-                        }
-                        is NoteResult.Error -> noteViewState.value = NoteViewState(error = noteResult.error)
-                    }
-                }
+    private val pendingNote: Note?
+        get() = getViewState().poll()?.note
+
+    override val coroutineContext: CoroutineContext by lazy {
+        Dispatchers.Default + Job()
+    }
+
+    private val viewStateChannel = BroadcastChannel<NoteViewState>(Channel.CONFLATED)
+    private val errorChannel = Channel<Throwable>()
+
+    fun getViewState(): ReceiveChannel<NoteViewState> = viewStateChannel.openSubscription()
+    fun getErrorChannel(): ReceiveChannel<Throwable> = errorChannel
+
+     fun setError(e: Throwable) = launch {
+        errorChannel.send(e)
+    }
+
+     fun setData(data: NoteViewState){
+        launch {
+            viewStateChannel.send(data)
+        }
+    }
+
+    fun loadNote(noteId: String) = launch {
+        try {
+            noteModel.loadNote(noteId).let {
+                setData(NoteViewState(note = it))
             }
-        } else
-            newNote()
+        } catch (e: Throwable) {
+            setError(e)
+        }
     }
 
     fun save(newTitle: String, newText: String) {
@@ -49,17 +61,24 @@ class NoteViewModel(val noteModel: INoteModel) : ViewModel() {
                 ?: Note(UUID.randomUUID().toString(), title = newTitle, text = newText, lastChanged = Date(), color = Note().color.getNewColor())
     }
 
-    fun viewNote(): LiveData<NoteViewState> = noteViewState
-
     override fun onCleared() {
+        launch {
+            pendingNote?.let {
+                noteModel.saveNote(it)
+            }
+        }
+        viewStateChannel.close()
+        errorChannel.close()
+        coroutineContext.cancel()
+        super.onCleared()
         saveNote()
     }
 
-    fun newNote() {
+    suspend fun newNote() {
         changedNote = null
         val newNoteViewSate = NoteViewState()
         newNoteViewSate.toolbarTitle = "note_new"
-        noteViewState.value = newNoteViewSate
+        viewStateChannel.send(newNoteViewSate)
     }
 
     fun pause() {
@@ -67,28 +86,19 @@ class NoteViewModel(val noteModel: INoteModel) : ViewModel() {
     }
 
     fun saveNote() {
-        changedNote?.let {
-            noteModel.saveNote(changedNote!!).subscribe(
-                    {
-                        changedNote = null
-                        noteViewState.value = NoteViewState(saveOk = true)
-                    },
-                    { error ->
-                        noteViewState.value = NoteViewState(saveErr = error)
-                    });
+        launch {
+            viewStateChannel.send(NoteViewState(note = changedNote))
         }
     }
 
-    fun deleteNote() {
-        changedNote?.let {
-            noteModel.deleteNote(it).subscribe(
-                    {
-                        changedNote = null
-                        noteViewState.value = NoteViewState(delOk = true)
-                    },
-                    { error ->
-                        noteViewState.value = NoteViewState(delError = error)
-                    });
+    fun deleteNote() = launch {
+        try {
+            pendingNote?.let {
+                noteModel.deleteNote(it)
+                setData(NoteViewState(delOk = true))
+            }
+        } catch (e: Throwable) {
+            setError(e)
         }
     }
 

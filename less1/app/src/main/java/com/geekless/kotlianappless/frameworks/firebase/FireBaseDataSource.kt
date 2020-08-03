@@ -1,16 +1,14 @@
 package com.geekless.kotlianappless.frameworks.firebase
 
-import com.geekless.kotlianappless.interface_adapters.viewmodel.splash.SplashViewState
 import com.geekless.kotlianappless.model.data.IDataSource
 import com.geekless.kotlianappless.model.entities.Note
 import com.geekless.kotlianappless.model.entities.User
+import com.geekless.kotlianappless.model.error.NoAuthException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
-import ru.geekbrains.gb_kotlin.data.error.NoAuthException
 import ru.geekbrains.gb_kotlin.data.model.NoteResult
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -20,12 +18,9 @@ class FireBaseDataSource(val store: FirebaseFirestore, val auth: FirebaseAuth) :
     private val NOTES_COLLECTION = "notes"
     private val USERS_COLLECTION = "users"
 
-    var noteResultListBehaviorSubject = BehaviorSubject.create<NoteResult>()
-    var currentUserBehaviorSubject = BehaviorSubject.create<SplashViewState>()
 
     private val currentUser
         get() = auth.currentUser
-
 
     private fun getUserNotesCollection() = currentUser?.let {
         store.collection(USERS_COLLECTION).document(it.uid).collection(NOTES_COLLECTION)
@@ -48,7 +43,6 @@ class FireBaseDataSource(val store: FirebaseFirestore, val auth: FirebaseAuth) :
         } catch (e: Throwable) {
             offer(NoteResult.Error(e))
         }
-
         invokeOnClose { registration?.remove() }
     }
 

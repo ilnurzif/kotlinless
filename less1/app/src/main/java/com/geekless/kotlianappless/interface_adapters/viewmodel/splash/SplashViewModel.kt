@@ -1,23 +1,46 @@
 package com.geekless.kotliappless
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.geekless.kotlianappless.interface_adapters.viewmodel.splash.SplashViewState
 import com.geekless.kotlianappless.model.interactors.splash.ISplashModel
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import java.io.NotActiveException
+import kotlin.coroutines.CoroutineContext
+
+class SplashViewModel(val splashModel: ISplashModel) : ViewModel(), CoroutineScope {
+    private val viewStateChannel = BroadcastChannel<Boolean>(Channel.CONFLATED)
+    private val errorChannel = Channel<Throwable>()
+
+    fun getViewState(): ReceiveChannel<Boolean> = viewStateChannel.openSubscription()
+    fun getErrorChannel(): ReceiveChannel<Throwable> = errorChannel
 
 
-class SplashViewModel(val splashModel: ISplashModel) : ViewModel() {
-    private val splashViewState = MutableLiveData<SplashViewState>()
-
-    init {
-        splashModel.getCurrentUserBehaviorSubject().subscribe(
-                {splashViewState.value = it}
-                ,{ error ->splashViewState.value = error.message?.let { SplashViewState(authApiError = it) }
-                });
+    override val coroutineContext: CoroutineContext by lazy {
+        Dispatchers.Main + Job()
     }
 
-    fun viewState(): LiveData<SplashViewState> = splashViewState
+    fun requestUser() = launch {
+        splashModel.getDefaultUser()?.let {
+            setData(true)
+        } ?: let { setError(NotActiveException()) }
+    }
 
-    override fun onCleared() {}
+    fun setError(e: Throwable) = launch {
+        errorChannel.send(e)
+    }
+
+    protected fun setData(data: Boolean) {
+        launch {
+            viewStateChannel.send(data)
+        }
+    }
+
+    override fun onCleared() {
+        viewStateChannel.close()
+        errorChannel.close()
+        coroutineContext.cancel()
+        super.onCleared()
+    }
 }

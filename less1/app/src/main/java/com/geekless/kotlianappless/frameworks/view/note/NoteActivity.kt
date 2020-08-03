@@ -14,14 +14,19 @@ import androidx.appcompat.app.AppCompatActivity
 import com.geekless.kotlianappless.R
 import kotlinx.android.synthetic.main.activity_note.*
 import kotlinx.android.synthetic.main.activity_note.toolbar
-import androidx.lifecycle.Observer
 import com.geekless.kotlia.NoteViewModel
 import com.geekless.kotlianappless.frameworks.common.getColorInt
 import com.geekless.kotlianappless.interface_adapters.viewmodel.note.NoteViewState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import org.koin.android.viewmodel.ext.android.viewModel
+import kotlin.coroutines.CoroutineContext
 
 
-class NoteActivity : AppCompatActivity() {
+class NoteActivity : AppCompatActivity(), CoroutineScope {
     companion object {
         const val EXTRA_NOTE = "extra.NOTE"
 
@@ -32,6 +37,13 @@ class NoteActivity : AppCompatActivity() {
     }
 
     val noteViewModel: NoteViewModel by viewModel()
+    private lateinit var dataJob: Job
+    private lateinit var errorJob: Job
+
+    override val coroutineContext: CoroutineContext by lazy {
+        Dispatchers.Main + Job()
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,9 +51,13 @@ class NoteActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        noteViewModel.viewNote().observe(this, Observer { setData(it) })
+
         val noteId = intent.getStringExtra(EXTRA_NOTE)
-        noteViewModel.loadNote(noteId)
+        noteId?.let {
+            if (savedInstanceState == null) {
+                noteViewModel.loadNote(it)
+            }
+        }
         initView()
     }
 
@@ -49,6 +65,31 @@ class NoteActivity : AppCompatActivity() {
         override fun afterTextChanged(p0: Editable?) = saveNote()
         override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
         override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+    }
+
+    override fun onStart() {
+        super.onStart()
+        dataJob = launch {
+            noteViewModel.getViewState().consumeEach {
+                renderData(it)
+            }
+        }
+
+        errorJob = launch {
+            noteViewModel.getErrorChannel().consumeEach {
+                renderError(it)
+            }
+        }
+    }
+
+    fun renderData(data: NoteViewState) {
+        data?.let {
+            setData(it)
+        }
+    }
+
+    private fun renderError(err: Throwable) {
+        Toast.makeText(this, err.message, Toast.LENGTH_LONG).show()
     }
 
     fun saveNote() {

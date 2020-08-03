@@ -7,7 +7,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import ru.geekbrains.gb_kotlin.data.model.NoteResult
 
 class BaseRepositoryImpl(val dataSource: IDataSource) : IMyRepository {
-    override suspend fun getData(): ReceiveChannel<NoteResult> {
+    override fun getData(): ReceiveChannel<NoteResult> {
         return dataSource.getData();
     }
 

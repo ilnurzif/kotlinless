@@ -7,6 +7,9 @@ import com.geekless.kotlianappless.model.interactors.main.IMainModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 import ru.geekbrains.gb_kotlin.data.model.NoteResult
 import kotlinx.coroutines.channels.consumeEach
 import kotlin.coroutines.CoroutineContext
@@ -16,44 +19,37 @@ class MainViewModel(val model: IMainModel ) : ViewModel(), CoroutineScope {
         Dispatchers.Default + Job()
     }
 
-/*    private val viewStateData = MutableLiveData<MyViewState>()
-
-    init {
-        model.getData().subscribe { result: NoteResult ->
-            when (result) {
-                is NoteResult.Success<*> -> {
-                    val listNote = result.data as? List<Note>
-                    listNote?.let {
-                        viewStateData.value = MyViewState(listNote)
-                        Note.noteCount = listNote.size
-                    }
-                }
-                is NoteResult.Error -> viewStateData.value = MyViewState(error = result.error)
-            }
-        }
-    }*/
-
-
     private val notesChannel = model.getData()
+
+    private val viewStateChannel = BroadcastChannel<List<Note>?>(Channel.CONFLATED)
+    private val errorChannel = Channel<Throwable>()
+
+    fun getViewState(): ReceiveChannel<List<Note>?> = viewStateChannel.openSubscription()
+    fun getErrorChannel(): ReceiveChannel<Throwable> = errorChannel
 
     init {
         launch {
             notesChannel.consumeEach {
                 when(it){
-                    is NoteResult.Success<*> -> setData(it.data as? List<Note>)
+                    is NoteResult.Success<*> -> setData(it.data as? List<Note>?)
                     is NoteResult.Error -> setError(it.error)
                 }
             }
         }
     }
 
-    protected fun setData(data: S){
+    fun setData(data: List<Note>?){
         launch {
-            notesChannel.send(data)
+            if (data != null) {
+                viewStateChannel.send(data)
+            }
         }
     }
 
-    //  fun viewState(): LiveData<MyViewState> = viewStateData
+     fun setError(e: Throwable) = launch {
+        errorChannel.send(e)
+    }
+
 }
 
 

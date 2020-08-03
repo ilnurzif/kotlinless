@@ -1,3 +1,3 @@
-package ru.geekbrains.gb_kotlin.data.error
+package com.geekless.kotlianappless.model.error
 
 class NoAuthException : Throwable()
